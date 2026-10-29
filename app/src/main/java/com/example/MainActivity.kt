@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -20,34 +19,31 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.data.GamePreferences
 import com.example.data.LevelSelectTarget
+import com.example.data.PuzzleCategory
 import com.example.data.PuzzleDifficulty
 import com.example.ui.hub.HubScreen
 import com.example.ui.hub.LevelSelectScreen
 import com.example.ui.photopuzzle.PhotoPuzzleScreen
 import com.example.ui.photopuzzle.PhotoPuzzleViewModel
-import com.example.ui.snakeludo.SnakeLudoScreen
-import com.example.ui.snakeludo.SnakeLudoViewModel
 import com.example.ui.theme.DarkBgStart
 import com.example.ui.theme.MyApplicationTheme
-import com.example.ui.wordmaster.AnagramBlitzScreen
-import com.example.ui.wordmaster.WordMasterScreen
-import com.example.ui.wordmaster.WordMasterViewModel
 import com.example.util.AudioHapticsManager
 
 object AppRoutes {
     const val HOME = "home"
-    const val PHOTO_PUZZLE = "photo_puzzle/{level}/{difficulty}?customUri={customUri}"
-    const val WORD_MASTER = "word_master/{level}"
-    const val ANAGRAM_BLITZ = "anagram_blitz"
+    const val PHOTO_PUZZLE = "photo_puzzle/{level}/{difficulty}?category={category}&customUri={customUri}"
     const val LEVEL_SELECT = "level_select/{target}"
-    const val SNAKE_LUDO = "snake_ludo"
 
-    fun photoPuzzle(level: Int, difficulty: PuzzleDifficulty, customUri: String? = null): String {
+    fun photoPuzzle(
+        level: Int,
+        difficulty: PuzzleDifficulty,
+        customUri: String? = null,
+        category: PuzzleCategory? = null
+    ): String {
         val encodedUri = if (!customUri.isNullOrEmpty()) Uri.encode(customUri) else ""
-        return "photo_puzzle/$level/${difficulty.name}?customUri=$encodedUri"
+        val catName = category?.name ?: ""
+        return "photo_puzzle/$level/${difficulty.name}?category=$catName&customUri=$encodedUri"
     }
-
-    fun wordMaster(level: Int): String = "word_master/$level"
 
     fun levelSelect(target: LevelSelectTarget): String = "level_select/${target.name}"
 }
@@ -57,8 +53,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var preferences: GamePreferences
     private lateinit var audioHapticsManager: AudioHapticsManager
     private lateinit var photoViewModel: PhotoPuzzleViewModel
-    private lateinit var wordViewModel: WordMasterViewModel
-    private lateinit var snakeViewModel: SnakeLudoViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,8 +64,6 @@ class MainActivity : ComponentActivity() {
         audioHapticsManager.hapticsEnabled = preferences.hapticsEnabled
 
         photoViewModel = PhotoPuzzleViewModel(application, preferences, audioHapticsManager)
-        wordViewModel = WordMasterViewModel(application, preferences, audioHapticsManager)
-        snakeViewModel = SnakeLudoViewModel(application, preferences, audioHapticsManager)
 
         setContent {
             MyApplicationTheme {
@@ -91,22 +83,13 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        // Home Menu Screen
+                        // Home Menu Screen (Photo Jigsaw Studio)
                         composable(AppRoutes.HOME) {
                             HubScreen(
                                 preferences = preferences,
                                 audioHaptics = audioHapticsManager,
-                                onStartPhotoPuzzle = { lvl, diff, uri ->
-                                    navController.navigate(AppRoutes.photoPuzzle(lvl, diff, uri))
-                                },
-                                onStartWordMaster = { lvl ->
-                                    navController.navigate(AppRoutes.wordMaster(lvl))
-                                },
-                                onStartAnagramBlitz = {
-                                    navController.navigate(AppRoutes.ANAGRAM_BLITZ)
-                                },
-                                onStartSnakeLudo = {
-                                    navController.navigate(AppRoutes.SNAKE_LUDO)
+                                onStartPhotoPuzzle = { lvl, diff, uri, cat ->
+                                    navController.navigate(AppRoutes.photoPuzzle(lvl, diff, uri, cat))
                                 },
                                 onOpenLevelSelect = { target ->
                                     navController.navigate(AppRoutes.levelSelect(target))
@@ -114,12 +97,13 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Mode 1: Photo Puzzle Board
+                        // Photo Puzzle Board
                         composable(
                             route = AppRoutes.PHOTO_PUZZLE,
                             arguments = listOf(
                                 navArgument("level") { type = NavType.IntType; defaultValue = 1 },
                                 navArgument("difficulty") { type = NavType.StringType; defaultValue = PuzzleDifficulty.EASY.name },
+                                navArgument("category") { type = NavType.StringType; nullable = true; defaultValue = null },
                                 navArgument("customUri") { type = NavType.StringType; nullable = true; defaultValue = null }
                             )
                         ) { backStackEntry ->
@@ -130,6 +114,15 @@ class MainActivity : ComponentActivity() {
                             } catch (_: Exception) {
                                 PuzzleDifficulty.EASY
                             }
+                            val catName = backStackEntry.arguments?.getString("category")
+                            val category = if (!catName.isNullOrEmpty()) {
+                                try {
+                                    PuzzleCategory.valueOf(catName)
+                                } catch (_: Exception) {
+                                    null
+                                }
+                            } else null
+
                             val rawCustomUri = backStackEntry.arguments?.getString("customUri")
                             val customUri = if (!rawCustomUri.isNullOrEmpty()) Uri.decode(rawCustomUri) else null
 
@@ -139,41 +132,7 @@ class MainActivity : ComponentActivity() {
                                 levelNumber = level,
                                 difficulty = difficulty,
                                 customUri = customUri,
-                                onBackToHub = { navController.popBackStack() }
-                            )
-                        }
-
-                        // Mode 2: English Word Master
-                        composable(
-                            route = AppRoutes.WORD_MASTER,
-                            arguments = listOf(
-                                navArgument("level") { type = NavType.IntType; defaultValue = 1 }
-                            )
-                        ) { backStackEntry ->
-                            val level = backStackEntry.arguments?.getInt("level") ?: 1
-
-                            WordMasterScreen(
-                                viewModel = wordViewModel,
-                                preferences = preferences,
-                                levelNumber = level,
-                                onBackToHub = { navController.popBackStack() }
-                            )
-                        }
-
-                        // Mode 3: Snake Ludo (Saanp Seedhi)
-                        composable(AppRoutes.SNAKE_LUDO) {
-                            SnakeLudoScreen(
-                                viewModel = snakeViewModel,
-                                preferences = preferences,
-                                onBackToHub = { navController.popBackStack() }
-                            )
-                        }
-
-                        // Anagram Blitz Mini-Mode
-                        composable(AppRoutes.ANAGRAM_BLITZ) {
-                            AnagramBlitzScreen(
-                                preferences = preferences,
-                                audioHaptics = audioHapticsManager,
+                                category = category,
                                 onBackToHub = { navController.popBackStack() }
                             )
                         }
@@ -195,11 +154,8 @@ class MainActivity : ComponentActivity() {
                             LevelSelectScreen(
                                 targetMode = target,
                                 preferences = preferences,
-                                onSelectLevel = { lvl, diff ->
-                                    navController.navigate(AppRoutes.photoPuzzle(lvl, diff, null))
-                                },
-                                onSelectWordLevel = { lvl ->
-                                    navController.navigate(AppRoutes.wordMaster(lvl))
+                                onSelectLevel = { lvl, diff, cat ->
+                                    navController.navigate(AppRoutes.photoPuzzle(lvl, diff, null, cat))
                                 },
                                 onBackToHub = { navController.popBackStack() }
                             )

@@ -17,14 +17,21 @@ enum class PuzzleDifficulty(
     EXPERT("Custom (64 Pieces)", 8, 8, 64, 300, false, 0.25f);
 }
 
-enum class PuzzleCategory(val displayName: String, val iconName: String, val seedPrefix: String) {
-    ANIMALS("Animals", "pets", "aroy_animal"),
-    BIRDS("Birds", "flutter_dash", "aroy_bird"),
-    NATURE("Nature", "landscape", "aroy_nature"),
-    MARINE("Fish & Marine", "waves", "aroy_marine"),
-    SPACE("Space & Galaxy", "auto_awesome", "aroy_space"),
-    FOREST("Trees & Forests", "park", "aroy_forest"),
-    FLOWERS("Flowers", "local_florist", "aroy_flower");
+enum class PuzzleCategory(
+    val displayName: String,
+    val iconEmoji: String,
+    val subtitle: String,
+    val seedPrefix: String
+) {
+    ANIMALS("Animals", "🦁", "Wild & majestic animals", "aroy_animal"),
+    FLOWERS("Flowers", "🌸", "Roses, lotus, orchids & lilies", "aroy_flower"),
+    BIRDS("Birds", "🦚", "Peacocks, parrots & eagles", "aroy_bird"),
+    NATURE("Nature", "🏔️", "Mountains, waterfalls & beaches", "aroy_nature"),
+    SPACE("Space", "🌌", "Galaxies, nebulae & planets", "aroy_space"),
+    MARINE("Marine Life", "🐬", "Dolphins, turtles & coral reefs", "aroy_marine"),
+    FOREST("Forests", "🌲", "Misty woods, redwoods & trees", "aroy_forest"),
+    CASTLES("Castles", "🏰", "Fairytale castles & landmarks", "aroy_castle"),
+    CARS("Supercars", "🏎️", "High-speed hypercars & racers", "aroy_car");
 
     fun getImageUrl(level: Int): String {
         // High quality crystal HD seed images from Picsum and curated source
@@ -68,6 +75,6 @@ enum class LevelSelectTarget {
     PHOTO_EASY,
     PHOTO_MEDIUM,
     PHOTO_HARD,
-    WORD_MASTER
+    PHOTO_EXPERT
 }
 

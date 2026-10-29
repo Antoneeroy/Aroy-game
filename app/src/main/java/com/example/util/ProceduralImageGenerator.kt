@@ -31,6 +31,8 @@ object ProceduralImageGenerator {
             PuzzleCategory.FLOWERS -> drawFlowerScene(canvas, paint, width, height, rng)
             PuzzleCategory.BIRDS -> drawBirdScene(canvas, paint, width, height, rng)
             PuzzleCategory.ANIMALS -> drawAnimalScene(canvas, paint, width, height, rng)
+            PuzzleCategory.CASTLES -> drawCastleScene(canvas, paint, width, height, rng)
+            PuzzleCategory.CARS -> drawCarScene(canvas, paint, width, height, rng)
         }
 
         return bitmap
@@ -264,5 +266,84 @@ object ProceduralImageGenerator {
 
         // Ground
         canvas.drawRect(0f, h * 0.82f, w.toFloat(), h.toFloat(), paint)
+    }
+
+    private fun drawCastleScene(canvas: Canvas, paint: Paint, w: Int, h: Int, rng: Random) {
+        // Mystical twilight sky
+        paint.shader = LinearGradient(
+            0f, 0f, 0f, h.toFloat(),
+            intArrayOf(Color.rgb(49, 46, 129), Color.rgb(109, 40, 217), Color.rgb(244, 114, 182)),
+            null, Shader.TileMode.CLAMP
+        )
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), paint)
+
+        // Moon
+        paint.shader = null
+        paint.color = Color.argb(230, 254, 240, 138)
+        canvas.drawCircle(w * 0.25f, h * 0.25f, w * 0.12f, paint)
+
+        // Castle towers silhouette
+        paint.color = Color.rgb(15, 23, 42)
+        // Center keep
+        canvas.drawRect(w * 0.38f, h * 0.45f, w * 0.62f, h * 0.85f, paint)
+        // Spire
+        val spire = Path().apply {
+            moveTo(w * 0.5f, h * 0.28f)
+            lineTo(w * 0.36f, h * 0.45f)
+            lineTo(w * 0.64f, h * 0.45f)
+            close()
+        }
+        canvas.drawPath(spire, paint)
+
+        // Left & right turrets
+        canvas.drawRect(w * 0.22f, h * 0.52f, w * 0.35f, h * 0.85f, paint)
+        canvas.drawRect(w * 0.65f, h * 0.52f, w * 0.78f, h * 0.85f, paint)
+
+        // Hill ground
+        canvas.drawOval(w * -0.1f, h * 0.78f, w * 1.1f, h * 1.1f, paint)
+    }
+
+    private fun drawCarScene(canvas: Canvas, paint: Paint, w: Int, h: Int, rng: Random) {
+        // High-speed neon road gradient
+        paint.shader = LinearGradient(
+            0f, 0f, 0f, h.toFloat(),
+            intArrayOf(Color.rgb(15, 23, 42), Color.rgb(30, 58, 138), Color.rgb(2, 6, 23)),
+            null, Shader.TileMode.CLAMP
+        )
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), paint)
+
+        // Speed light trails
+        paint.shader = null
+        paint.color = Color.argb(120, 56, 189, 248)
+        for (i in 0..12) {
+            val y = h * 0.3f + rng.nextFloat() * (h * 0.35f)
+            canvas.drawRect(0f, y, w.toFloat(), y + 3f, paint)
+        }
+
+        // Sleek sports car silhouette
+        paint.color = Color.rgb(239, 68, 68) // Crimson supercar
+        val carBody = Path().apply {
+            moveTo(w * 0.15f, h * 0.65f)
+            quadTo(w * 0.3f, h * 0.58f, w * 0.45f, h * 0.52f)
+            lineTo(w * 0.68f, h * 0.52f)
+            quadTo(w * 0.82f, h * 0.60f, w * 0.88f, h * 0.65f)
+            lineTo(w * 0.15f, h * 0.65f)
+            close()
+        }
+        canvas.drawPath(carBody, paint)
+
+        // Wheels
+        paint.color = Color.rgb(10, 10, 15)
+        canvas.drawCircle(w * 0.32f, h * 0.66f, w * 0.08f, paint)
+        canvas.drawCircle(w * 0.72f, h * 0.66f, w * 0.08f, paint)
+
+        // Alloy rims
+        paint.color = Color.rgb(245, 158, 11)
+        canvas.drawCircle(w * 0.32f, h * 0.66f, w * 0.04f, paint)
+        canvas.drawCircle(w * 0.72f, h * 0.66f, w * 0.04f, paint)
+
+        // Glowing headlights
+        paint.color = Color.argb(200, 254, 240, 138)
+        canvas.drawOval(w * 0.84f, h * 0.62f, w * 0.88f, h * 0.65f, paint)
     }
 }

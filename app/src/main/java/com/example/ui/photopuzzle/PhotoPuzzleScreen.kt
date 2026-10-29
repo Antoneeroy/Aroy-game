@@ -73,6 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.GamePreferences
+import com.example.data.PuzzleCategory
 import com.example.data.PuzzleDifficulty
 import com.example.data.PuzzlePiece
 import com.example.ui.components.CoinBadge
@@ -97,6 +98,7 @@ fun PhotoPuzzleScreen(
     levelNumber: Int,
     difficulty: PuzzleDifficulty,
     customUri: String? = null,
+    category: PuzzleCategory? = null,
     onBackToHub: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -107,12 +109,12 @@ fun PhotoPuzzleScreen(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.startLevel(uiState.levelNumber, uiState.difficulty, uri.toString())
+            viewModel.startLevel(uiState.levelNumber, uiState.difficulty, uri.toString(), uiState.category)
         }
     }
 
-    LaunchedEffect(levelNumber, difficulty, customUri) {
-        viewModel.startLevel(levelNumber, difficulty, customUri)
+    LaunchedEffect(levelNumber, difficulty, customUri, category) {
+        viewModel.startLevel(levelNumber, difficulty, customUri, category)
     }
 
     BackHandler {

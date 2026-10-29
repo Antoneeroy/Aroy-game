@@ -59,14 +59,19 @@ class PhotoPuzzleViewModel(
 
     private var timerJob: Job? = null
 
-    fun startLevel(level: Int, difficulty: PuzzleDifficulty, customUri: String? = null) {
+    fun startLevel(
+        level: Int,
+        difficulty: PuzzleDifficulty,
+        customUri: String? = null,
+        category: PuzzleCategory? = null
+    ) {
         timerJob?.cancel()
-        val category = PuzzleCategory.forLevel(level)
+        val resolvedCategory = category ?: PuzzleCategory.forLevel(level)
         _uiState.update {
             it.copy(
                 levelNumber = level,
                 difficulty = difficulty,
-                category = category,
+                category = resolvedCategory,
                 pieces = emptyList(),
                 boardSlots = emptyMap(),
                 selectedPiece = null,
@@ -85,7 +90,7 @@ class PhotoPuzzleViewModel(
         }
 
         viewModelScope.launch {
-            val bitmap = loadOrGenerateBitmap(level, category, customUri)
+            val bitmap = loadOrGenerateBitmap(level, resolvedCategory, customUri)
             val pieces = withContext(Dispatchers.Default) {
                 ImageSlicer.sliceImage(bitmap, difficulty)
             }

@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,14 +61,12 @@ import com.example.ui.theme.GoldAccent
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
-import com.example.ui.theme.VioletAccent
 
 @Composable
 fun LevelSelectScreen(
     targetMode: LevelSelectTarget,
     preferences: GamePreferences,
-    onSelectLevel: (Int, PuzzleDifficulty) -> Unit,
-    onSelectWordLevel: (Int) -> Unit,
+    onSelectLevel: (Int, PuzzleDifficulty, PuzzleCategory) -> Unit,
     onBackToHub: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -75,12 +76,19 @@ fun LevelSelectScreen(
                 LevelSelectTarget.PHOTO_EASY -> 0
                 LevelSelectTarget.PHOTO_MEDIUM -> 1
                 LevelSelectTarget.PHOTO_HARD -> 2
-                LevelSelectTarget.WORD_MASTER -> 3
+                LevelSelectTarget.PHOTO_EXPERT -> 3
             }
         )
     }
 
-    val tabTitles = listOf("Easy", "Medium", "Hard", "Word Master")
+    var selectedCategoryFilter by remember { mutableStateOf<PuzzleCategory?>(null) }
+
+    val tabDifficulties = listOf(
+        PuzzleDifficulty.EASY,
+        PuzzleDifficulty.MEDIUM,
+        PuzzleDifficulty.HARD,
+        PuzzleDifficulty.EXPERT
+    )
 
     BackHandler {
         onBackToHub()
@@ -110,7 +118,7 @@ fun LevelSelectScreen(
                 }
 
                 Text(
-                    text = "Select Level",
+                    text = "Select Puzzle Level",
                     color = TextPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -119,6 +127,7 @@ fun LevelSelectScreen(
                 CoinBadge(coins = preferences.coins)
             }
 
+            // Difficulty Tabs
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color(0x331E293B),
@@ -126,21 +135,21 @@ fun LevelSelectScreen(
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = if (selectedTab == 3) VioletAccent else CyanAccent
+                        color = CyanAccent
                     )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
             ) {
-                tabTitles.forEachIndexed { index, title ->
+                tabDifficulties.forEachIndexed { index, diff ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
                         text = {
                             Text(
-                                text = title,
-                                fontSize = 12.sp,
+                                text = diff.name.lowercase().replaceFirstChar { it.uppercase() } + " (${diff.totalPieces}p)",
+                                fontSize = 11.sp,
                                 fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
                                 color = if (selectedTab == index) TextPrimary else TextSecondary
                             )
@@ -149,19 +158,52 @@ fun LevelSelectScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            val currentDifficulty = when (selectedTab) {
-                0 -> PuzzleDifficulty.EASY
-                1 -> PuzzleDifficulty.MEDIUM
-                2 -> PuzzleDifficulty.HARD
-                else -> PuzzleDifficulty.EASY
+            // Category Filter Carousel
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                item {
+                    val isAll = (selectedCategoryFilter == null)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isAll) CyanAccent.copy(alpha = 0.25f) else Color(0x331E293B))
+                            .border(1.dp, if (isAll) CyanAccent else GlassBorderSubtle, RoundedCornerShape(12.dp))
+                            .clickable { selectedCategoryFilter = null }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text("✨ All Categories", color = if (isAll) Color.White else TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                items(PuzzleCategory.entries) { cat ->
+                    val isSelected = (selectedCategoryFilter == cat)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) CyanAccent.copy(alpha = 0.25f) else Color(0x331E293B))
+                            .border(1.dp, if (isSelected) CyanAccent else GlassBorderSubtle, RoundedCornerShape(12.dp))
+                            .clickable { selectedCategoryFilter = cat }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(cat.iconEmoji, fontSize = 12.sp)
+                            Text(cat.displayName, color = if (isSelected) Color.White else TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             }
 
-            val unlockedMax = if (selectedTab == 3) {
-                preferences.wordMasterUnlockedLevel
-            } else {
-                preferences.getPhotoUnlockedLevel(currentDifficulty.name)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            val currentDifficulty = tabDifficulties[selectedTab]
+            val unlockedMax = preferences.getPhotoUnlockedLevel(currentDifficulty.name.lowercase())
+
+            val allLevels = (1..100).toList().filter { lvl ->
+                if (selectedCategoryFilter == null) true
+                else PuzzleCategory.forLevel(lvl) == selectedCategoryFilter
             }
 
             LazyVerticalGrid(
@@ -173,13 +215,9 @@ fun LevelSelectScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items((1..100).toList()) { lvl ->
+                items(allLevels) { lvl ->
                     val isUnlocked = lvl <= unlockedMax
-                    val stars = if (selectedTab == 3) {
-                        preferences.getWordStars(lvl)
-                    } else {
-                        preferences.getPhotoStars(currentDifficulty.name, lvl)
-                    }
+                    val stars = preferences.getPhotoStars(currentDifficulty.name.lowercase(), lvl)
                     val category = PuzzleCategory.forLevel(lvl)
 
                     Box(
@@ -193,11 +231,7 @@ fun LevelSelectScreen(
                                 RoundedCornerShape(14.dp)
                             )
                             .clickable(enabled = isUnlocked) {
-                                if (selectedTab == 3) {
-                                    onSelectWordLevel(lvl)
-                                } else {
-                                    onSelectLevel(lvl, currentDifficulty)
-                                }
+                                onSelectLevel(lvl, currentDifficulty, category)
                             }
                             .testTag("level_button_$lvl"),
                         contentAlignment = Alignment.Center
@@ -209,15 +243,21 @@ fun LevelSelectScreen(
                             ) {
                                 Text(
                                     text = "$lvl",
-                                    color = if (selectedTab == 3) VioletAccent else CyanAccent,
+                                    color = CyanAccent,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Black
                                 )
-                                Text(
-                                    text = category.displayName.take(7),
-                                    color = TextMuted,
-                                    fontSize = 9.sp
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(category.iconEmoji, fontSize = 10.sp)
+                                    Text(
+                                        text = category.displayName.take(5),
+                                        color = TextMuted,
+                                        fontSize = 9.sp
+                                    )
+                                }
                                 if (stars > 0) {
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(1.dp),

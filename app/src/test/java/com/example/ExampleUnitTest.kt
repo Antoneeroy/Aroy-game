@@ -2,9 +2,7 @@ package com.example
 
 import com.example.data.PuzzleCategory
 import com.example.data.PuzzleDifficulty
-import com.example.data.WordMasterLevelRepository
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -25,17 +23,12 @@ class ExampleUnitTest {
     @Test
     fun testCategoryCycle() {
         val cat1 = PuzzleCategory.forLevel(1)
-        val cat8 = PuzzleCategory.forLevel(8)
+        val cat10 = PuzzleCategory.forLevel(10)
         assertEquals(PuzzleCategory.ANIMALS, cat1)
-        assertEquals(PuzzleCategory.ANIMALS, cat8)
-    }
-
-    @Test
-    fun testWordLevelRepository() {
-        val lvl1 = WordMasterLevelRepository.getLevel(1)
-        assertEquals(1, lvl1.levelNumber)
-        assertTrue(lvl1.targetWords.contains("NATURE"))
-        assertNotNull(lvl1.definitions["NATURE"])
-        assertEquals("noun", lvl1.definitions["NATURE"]?.partOfSpeech)
+        assertEquals(PuzzleCategory.ANIMALS, cat10)
+        assertEquals(9, PuzzleCategory.entries.size)
+        assertTrue(PuzzleCategory.entries.contains(PuzzleCategory.FLOWERS))
+        assertTrue(PuzzleCategory.entries.contains(PuzzleCategory.ANIMALS))
+        assertTrue(PuzzleCategory.entries.contains(PuzzleCategory.BIRDS))
     }
 }

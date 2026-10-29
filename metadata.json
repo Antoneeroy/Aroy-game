@@ -1,6 +1,6 @@
 {
   "name": "Aroy Puzzle",
-  "description": "Multi-Mode Brain Hub: HD Photo Jigsaw Puzzle, English Word Master, and Snake Ludo (Saanp-Seedhi) with 10 themes and 4 difficulties",
+  "description": "HD Photo Jigsaw Puzzle Game with rich categories: Animals, Flowers, Birds, Nature, Space, Marine, Forests, Castles, Cars, and Custom Gallery Photos.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

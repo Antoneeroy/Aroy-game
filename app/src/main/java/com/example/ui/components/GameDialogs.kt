@@ -34,7 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.data.WordDefinition
 import com.example.ui.theme.CyanAccent
 import com.example.ui.theme.EmeraldAccent
 import com.example.ui.theme.GlassBorder
@@ -156,109 +155,6 @@ fun LevelCompleteDialog(
     }
 }
 
-@Composable
-fun DictionaryDialog(
-    definition: WordDefinition,
-    onSpeak: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        GlassCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            backgroundColor = Color(0xF7131D33),
-            borderColor = VioletAccent.copy(alpha = 0.6f),
-            testTag = "dictionary_dialog"
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = definition.word,
-                            color = CyanAccent,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Black
-                        )
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(VioletAccent.copy(alpha = 0.25f))
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = definition.partOfSpeech,
-                                color = VioletAccent,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.testTag("close_dictionary_button")
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = "Close", tint = TextSecondary)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Text(
-                    text = "DEFINITION",
-                    color = TextMuted,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-                Text(
-                    text = definition.definition,
-                    color = TextPrimary,
-                    fontSize = 16.sp,
-                    lineHeight = 22.sp
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Text(
-                    text = "EXAMPLE IN CONTEXT",
-                    color = TextMuted,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-                Text(
-                    text = "\"${definition.exampleSentence}\"",
-                    color = GoldAccent,
-                    fontSize = 14.sp,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                NeonGradientButton(
-                    text = "Listen Pronunciation",
-                    onClick = onSpeak,
-                    icon = Icons.Default.VolumeUp,
-                    modifier = Modifier.fillMaxWidth(),
-                    testTag = "tts_speak_button"
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun ProfileDashboardDialog(
@@ -332,8 +228,8 @@ fun ProfileDashboardDialog(
                         modifier = Modifier.weight(1f)
                     )
                     StatBox(
-                        title = "Words Discovered",
-                        value = "$totalWordsFound Words",
+                        title = "Brain Power",
+                        value = "$brainIq IQ",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -398,7 +294,6 @@ fun DailyMysteryDialog(
     canClaim: Boolean,
     onClaimReward: () -> Unit,
     onPlayPhotoOfTheDay: () -> Unit,
-    onPlayWordOfTheDay: () -> Unit,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -481,28 +376,17 @@ fun DailyMysteryDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("TODAY'S SPECIAL PUZZLES", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("TODAY'S SPECIAL PUZZLE", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 GlassOutlineButton(
-                    text = "Play Photo of the Day",
+                    text = "Play Daily Challenge Puzzle",
                     onClick = onPlayPhotoOfTheDay,
                     icon = Icons.Default.PlayArrow,
                     tintColor = CyanAccent,
                     modifier = Modifier.fillMaxWidth(),
                     testTag = "photo_of_day_button"
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                GlassOutlineButton(
-                    text = "Play Word of the Day",
-                    onClick = onPlayWordOfTheDay,
-                    icon = Icons.Default.PlayArrow,
-                    tintColor = VioletAccent,
-                    modifier = Modifier.fillMaxWidth(),
-                    testTag = "word_of_day_button"
                 )
             }
         }
